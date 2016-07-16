@@ -1,0 +1,5 @@
+services:
+    vkr_external_email.parser:
+        class: VKR\ExternalEmailBundle\Services\ExternalEmailParser
+        arguments:
+            - "@vkr_settings.settings_retriever"
