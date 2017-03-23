@@ -89,7 +89,7 @@ class ExternalEmailParserTest extends TestCase
     {
         $settingsRetriever = $this->createMock(SettingsRetriever::class);
         $settingsRetriever->method('get')
-            ->will($this->returnCallback([$this, 'getMockedSettingValueCallback']));
+            ->willReturnCallback([$this, 'getMockedSettingValueCallback']);
         return $settingsRetriever;
     }
 

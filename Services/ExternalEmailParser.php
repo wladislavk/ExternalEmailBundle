@@ -16,7 +16,7 @@ class ExternalEmailParser
     /**
      * @var SettingsRetriever
      */
-    protected $settingsRetriever;
+    private $settingsRetriever;
 
     /**
      * @param SettingsRetriever $settingsRetriever
@@ -59,7 +59,7 @@ class ExternalEmailParser
      * @return string
      * @throws FileNotFoundException
      */
-    protected function getExternalEmail($settingName)
+    private function getExternalEmail($settingName)
     {
         $emailFile = $this->settingsRetriever->get($settingName);
         try {
@@ -79,9 +79,12 @@ class ExternalEmailParser
      * @param string $type
      * @return Swift_Message
      */
-    protected function formExternalEmail($message, $subjectSettingName, $emailAddress,
-                                         $type='text/html')
-    {
+    private function formExternalEmail(
+        $message,
+        $subjectSettingName,
+        $emailAddress,
+        $type='text/html'
+    ) {
         $emailSubject = $this->settingsRetriever->get($subjectSettingName);
         $senderAddress = $this->settingsRetriever->get('mailer_from_address');
         $senderName = $this->settingsRetriever->get('mailer_from_name');
@@ -98,7 +101,7 @@ class ExternalEmailParser
      * @param array $additionalArguments
      * @return string
      */
-    protected function parseWildcard(EmailParserInterface $parser, array $additionalArguments=[])
+    private function parseWildcard(EmailParserInterface $parser, array $additionalArguments=[])
     {
         return $parser->parse($additionalArguments);
     }
@@ -107,7 +110,7 @@ class ExternalEmailParser
      * @param EmailParserInterface $parser
      * @return string
      */
-    protected function getWildcardName(EmailParserInterface $parser)
+    private function getWildcardName(EmailParserInterface $parser)
     {
         $reflection = new \ReflectionClass($parser);
         $className = $reflection->getShortName();
@@ -116,5 +119,4 @@ class ExternalEmailParser
         $wildcardName = '%' . strtoupper($converter->normalize($className)) . '%';
         return $wildcardName;
     }
-
 }
