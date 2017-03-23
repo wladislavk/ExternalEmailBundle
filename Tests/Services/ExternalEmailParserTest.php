@@ -1,6 +1,7 @@
 <?php
 namespace VKR\ExternalEmailBundle\Tests\Services;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use VKR\ExternalEmailBundle\Services\ExternalEmailParser;
 use PHPUnit_Framework_MockObject_MockObject;
@@ -9,9 +10,9 @@ use VKR\ExternalEmailBundle\TestHelpers\MyNameParser;
 use VKR\SettingsBundle\Exception\SettingNotFoundException;
 use VKR\SettingsBundle\Services\SettingsRetriever;
 
-class ExternalEmailParserTest extends \PHPUnit_Framework_TestCase
+class ExternalEmailParserTest extends TestCase
 {
-    protected $settings = [
+    private $settings = [
         'mailer_from_address' => 'admin@mysite.com',
         'mailer_from_name' => 'My cool site',
         'email_file' => __DIR__ . '/../../TestFixtures/message.txt',
@@ -22,22 +23,17 @@ class ExternalEmailParserTest extends \PHPUnit_Framework_TestCase
     /**
      * @var ExternalEmailParser
      */
-    protected $emailParser;
-
-    /**
-     * @var PHPUnit_Framework_MockObject_MockObject
-     */
-    protected $settingsRetriever;
+    private $emailParser;
 
     /**
      * @var array
      */
-    protected $wildcardParsers;
+    private $wildcardParsers;
 
     public function setUp()
     {
-        $this->mockSettingsRetriever();
-        $this->emailParser = new ExternalEmailParser($this->settingsRetriever);
+        $settingsRetriever = $this->mockSettingsRetriever();
+        $this->emailParser = new ExternalEmailParser($settingsRetriever);
         $this->wildcardParsers = [
             new MyNameParser(),
             new MyEmailParser(),
@@ -70,29 +66,31 @@ class ExternalEmailParserTest extends \PHPUnit_Framework_TestCase
             'name' => 'Bar',
             'email' => 'bar@foo.com',
         ];
-        $message = $this->emailParser->parseEmail('email_file', 'email_subject', 'test@test.com',
-                                                  $this->wildcardParsers, $args);
+        $message = $this->emailParser->parseEmail(
+            'email_file',
+            'email_subject',
+            'test@test.com',
+            $this->wildcardParsers,
+            $args
+        );
         $parsedMessage = 'Hello! My name is Bar and my email is bar@foo.com.';
         $this->assertEquals($parsedMessage, $message->getBody());
     }
 
     public function testNonExistentFile()
     {
-        $exceptionReflection = new \ReflectionClass(FileNotFoundException::class);
-        $this->setExpectedException($exceptionReflection->getName());
-        $message = $this->emailParser->parseEmail('nonexistent_file', 'email_subject', 'test@test.com',
-                                                  []);
+        $this->expectException(FileNotFoundException::class);
+        $this->emailParser->parseEmail(
+            'nonexistent_file', 'email_subject', 'test@test.com', []
+        );
     }
 
-    protected function mockSettingsRetriever()
+    private function mockSettingsRetriever()
     {
-        $this->settingsRetriever = $this
-            ->getMockBuilder(SettingsRetriever::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->settingsRetriever->expects($this->any())
-            ->method('get')
+        $settingsRetriever = $this->createMock(SettingsRetriever::class);
+        $settingsRetriever->method('get')
             ->will($this->returnCallback([$this, 'getMockedSettingValueCallback']));
+        return $settingsRetriever;
     }
 
     public function getMockedSettingValueCallback($settingName)
